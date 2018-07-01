@@ -71,4 +71,4 @@ module.exports = {
        callback(err);
      })
    }
-}
+};

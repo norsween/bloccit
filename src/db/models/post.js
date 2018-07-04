@@ -9,8 +9,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false
     },
-
     topicId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    userId: {
         type: DataTypes.INTEGER,
         allowNull: false
     }
@@ -18,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
    Post.associate = function(models) {
      Post.belongsTo(models.Topic, {
        foreignKey: "topicId",
+       onDelete: "CASCADE"
+     });
+     Post.belongsTo(models.User, {
+       foreignKey: "userId",
        onDelete: "CASCADE"
      });
   };

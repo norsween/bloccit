@@ -1,3 +1,4 @@
+// import dependencies
 const request = require("request");
 const server = require("../../src/server");
 const base = "http://localhost:3000/topics/";
@@ -11,12 +12,15 @@ const Comment = require("../../src/db/models").Comment;
 describe("routes : comments", () => {
 
   beforeEach((done) => {
+    // define variables to be used throughout test
     this.user;
     this.topic;
     this.post;
     this.comment;
 
     sequelize.sync({force: true}).then((res) => {
+
+      //create user, topic, post, comment and associate all
       User.create({
         email: "starman@tesla.com",
         password: "Trekkie4lyfe"
@@ -62,9 +66,10 @@ describe("routes : comments", () => {
     });
   });
 
-  // Define a context for guest user.
+  // define a context for guest user who is not signed in.
   describe("guest attempting to perform CRUD actions for Comment", () => {
     beforeEach((done) => {
+      // ensure there is no user signed in
       request.get({  // mock authentication
         url: "http://localhost:3000/auth/fake",
         form: {
@@ -77,6 +82,7 @@ describe("routes : comments", () => {
       );
     });
 
+    // test to ensure a user who is not signed in is not able to comment 
     describe("POST /topics/:topicId/posts/:postId/comments/create", () => {
       it("should not create a new comment", (done) => {
         const options = {
@@ -87,6 +93,8 @@ describe("routes : comments", () => {
         };
         request.post(options,
           (err, res, body) => {
+
+	    // make sure comment is not made by querying database
             Comment.findOne({where: {body: "This comment is amazing!"}})
             .then((comment) => {
               expect(comment).toBeNull();  // ensure no comment was created
@@ -101,6 +109,7 @@ describe("routes : comments", () => {
       });
     });
 
+    // test to ensure user who is not signed in is not able to destroy a comment
     describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
       it("should not delete the comment with the associated ID", (done) => {
         Comment.all()
@@ -122,7 +131,7 @@ describe("routes : comments", () => {
     });
   }); 
 
-  // Define a context for a signed in user.
+  // define a context for a signed in user.
   describe("signed in user performing CRUD actions for Comment", () => {
     beforeEach((done) => {   // before each suite in this context
       request.get({          // mock authentication
@@ -138,6 +147,7 @@ describe("routes : comments", () => {
       );
     });
 
+    // test to ensure a user who is signed in is able to create a comment
     describe("POST /topics/:topicId/posts/:postId/comments/create", () => {
       it("should create a new comment and redirect", (done) => {
         const options = {
@@ -164,6 +174,7 @@ describe("routes : comments", () => {
       });
     });
 
+    // test to ensure user who is signed in is able to destroy a comment
     describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
       it("should delete the comment with the associated ID", (done) => {
         Comment.all()
@@ -180,9 +191,100 @@ describe("routes : comments", () => {
                 expect(comments.length).toBe(commentCountBeforeDelete - 1);
                 done();
               })
-          });
+            }
+          );
+        });
+     });
+
+     // test to ensure a signed in member can't destroy another member's comment
+     describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
+      beforeEach((done) => {
+        User.create({
+          email: "iamgroot@example.com",
+          password: "78910",
+          role: "member"
         })
+        .then((user) => {
+        request.get({
+          url: "http://localhost:3000/auth/fake",
+          form: {
+              role: user.role,     
+              userId: user.id,
+              email: user.email
+          }
+        },
+        (err, res, body) => {
+          done();
+            }
+          );
+        });
+      });
+
+      it("should not delete another members comment", (done) => {
+        Comment.all()
+        .then((comments) => {
+          const commentCountBeforeDelete = comments.length;
+          expect(commentCountBeforeDelete).toBe(1);
+          request.post(
+            `${base}${this.topic.id}/posts/${this.post.id}/comments/${this.comment.id}/destroy`,
+            (err, res, body) => {
+              expect(res.statusCode).toBe(401);
+              Comment.all()
+              .then((comments) => {
+                expect(err).toBeNull();
+                expect(comments.length).toBe(commentCountBeforeDelete);
+                done();
+                })
+              }
+            );
+          })
+        });
       });
     });
-  }); 
-});
+
+    // test to ensure admin user can delete another member user's comment
+    describe("POST /topics/:topicId/posts/:postId/comments/:id/destroy", () => {
+      beforeEach((done) => {
+        User.create({
+          email: "admin@example.com",
+          password: "123456",
+          role: "admin"
+        })
+        .then((user) => {
+          request.get({         
+            url: "http://localhost:3000/auth/fake",
+            form: {
+              role: user.role,     
+              userId: user.id,
+              email: user.email
+            }
+          },
+            (err, res, body) => {
+              done();
+            }
+          );
+        });
+      });
+
+      it("should delete another members comment", (done) => {
+        Comment.all()
+        .then((comments) => {
+          const commentCountBeforeDelete = comments.length;
+          expect(commentCountBeforeDelete).toBe(1);
+          request.post(
+            `${base}${this.topic.id}/posts/${this.post.id}/comments/${this.comment.id}/destroy`,
+            (err, res, body) => {
+              expect(res.statusCode).toBe(302);
+              Comment.all()
+              .then((comments) => {
+                expect(err).toBeNull();
+                expect(comments.length).toBe(commentCountBeforeDelete - 1);
+                done();
+               })
+             }
+           );
+         });
+       });
+     });
+   });
+ });

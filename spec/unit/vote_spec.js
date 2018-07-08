@@ -9,13 +9,13 @@ const Vote = require("../../src/db/models").Vote;
 describe("Vote", () => {
 
   beforeEach((done) => {
- // Define the variables to be used throughout the tests. 
+    // Define the variables to be used throughout the tests. 
     this.user;
     this.topic;
     this.post;
     this.vote;
 
- // Clear the database and create objects to use in tests. 
+    // Clear the database and create objects to use in tests. 
     sequelize.sync({force: true}).then((res) => {
 
       User.create({
@@ -65,13 +65,12 @@ describe("Vote", () => {
     });
   });
 
-  // Define a suite for create action.
-     describe("#create()", () => {
+  describe("#create()", () => {
 
-   // Test to check that we successfully created an upvote 
+       // Test to check that we successfully created an upvote 
        it("should create an upvote on a post for a user", (done) => {
 
-   // Create an upvote for this.vote by this.user 
+         // Create an upvote for this.vote by this.user 
          Vote.create({
            value: 1,
            postId: this.post.id,
@@ -79,12 +78,11 @@ describe("Vote", () => {
          })
          .then((vote) => {
 
-   // Ensure the vote was successfully created. 
+         // Ensure the vote was successfully created. 
            expect(vote.value).toBe(1);
            expect(vote.postId).toBe(this.post.id);
            expect(vote.userId).toBe(this.user.id);
            done();
-
          })
          .catch((err) => {
            console.log(err);
@@ -92,7 +90,7 @@ describe("Vote", () => {
          });
        });
 
-   // Repeat for tests for a downvote. 
+       // Repeat for tests for a downvote. 
        it("should create a downvote on a post for a user", (done) => {
          Vote.create({
            value: -1,
@@ -112,7 +110,7 @@ describe("Vote", () => {
          });
        });
 
-   // Check that a vote is not created without a userId or postId assigned. 
+       // Check that a vote is not created without a userId or postId assigned. 
        it("should not create a vote without assigned post or user", (done) => {
          Vote.create({
            value: 1
@@ -134,9 +132,23 @@ describe("Vote", () => {
 
          })
       });
+
+      // Check that a vote is not created with a value other than 1 or -1
+      it("should not create a vote with a value other than 1 or -1", (done) => {
+          Vote.create({
+            value: 2,
+            postId: this.post.id,
+            userId: this.user.id
+          })
+          .then((vote) => {
+          })
+          .catch((err) => {
+            console.log(err);
+            done();
+          });
+      });
    });
 
-   // Define a suite for the setUser method.
    describe("#setUser()", () => {
 
       it("should associate a vote and a user together", (done) => {
@@ -168,13 +180,11 @@ describe("Vote", () => {
              console.log(err);
              done();
            });
-         })
-       });
+        })
+      });
+   });
 
-     });
-
-     // Define a suite for the getUser method 
-     describe("#getUser()", () => {
+   describe("#getUser()", () => {
 
        it("should return the associated user", (done) => {
          Vote.create({
@@ -193,10 +203,9 @@ describe("Vote", () => {
            console.log(err);
            done();
          });
-       });
-     });
+      });
+   });
 
-   // Define a suite for the setPost method
    describe("#setPost()", () => {
 
      it("should associate a post and a vote together", (done) => {
@@ -233,10 +242,8 @@ describe("Vote", () => {
          });
        });
      });
-
    });
 
-   // Define a suite for the getPost method 
    describe("#getPost()", () => {
 
      it("should return the associated post", (done) => {
@@ -258,4 +265,66 @@ describe("Vote", () => {
        });
      });
    });
- });
+
+   describe("#getPoints()", () => {
+        
+     it("should return a count of all the votes a post has", (done) => {
+         Vote.create({
+           value: 1,
+           userId: this.user.id,
+           postId: this.post.id
+        })
+        .then((votes) => {
+           let points = this.post.getPoints();
+           expect(points).toBe(1);
+           done();
+        })
+        .catch((err) => {
+           console.log(err);
+           done();
+        });
+      });
+    });
+
+    describe("#hasUpvoteFor()", () => {
+      it("should return true if the associated user has an upvote for the post", (done) => {
+         Vote.create({
+           value: 1,
+           userId: this.user.id,
+           postId: this.post.id
+         })
+         .then((vote) => {
+           vote.postId.hasUpvoteFor()
+           .then((associatedPost) => {
+             expect(this.votes).toBe(true);
+             done();
+           });
+         })
+         .catch((err) => {
+           console.log(err);
+           done();
+         });
+       });
+    });
+
+    describe("#hasDownvoteFor()", () => {
+      it("should return true if the associated user has a downvote for the post", (done) => {
+         Vote.create({
+           value: -1,
+           userId: this.user.id,
+           postId: this.post.id
+         })
+         .then((vote) => {
+           vote.postId.hasDownvoteFor()
+           .then((associatedPost) => {
+             expect(this.votes).toBe(true);
+             done();
+           });
+         })
+         .catch((err) => {
+           console.log(err);
+           done();
+         });
+       });
+     });
+   });

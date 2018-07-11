@@ -46,7 +46,7 @@ module.exports = {
    },
 
    destroy(req, res, next){
-     postQueries.deletePost(req.params.id, (err, deletedRecordsCount) => {
+     postQueries.deletePost(req.params.id, (err, post) => {
        if(err){
          res.redirect(500, `/topics/${req.params.topicId}/posts/${req.params.id}`)
        } else {

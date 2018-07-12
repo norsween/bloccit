@@ -74,7 +74,7 @@ describe("routes : votes", () => {
 
      describe("GET /topics/:topicId/posts/:postId/votes/upvote", () => {
 
-       it("should not create a new vote", (done) => {
+       it("should create an automatic new vote", (done) => {
          const options = {
            url: `${base}${this.topic.id}/posts/${this.post.id}/votes/upvote`
          };
@@ -87,7 +87,7 @@ describe("routes : votes", () => {
                }
              })
              .then((vote) => {
-               expect(vote).toBeNull();
+               expect(vote).not.toBeNull();
                done();
              })
              .catch((err) => {

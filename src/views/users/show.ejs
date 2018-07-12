@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include ../static/partials/head.ejs %>
+  </head>
+  <body>
+
+    <% include ../static/partials/navbar.ejs %>
+
+    <main class="container">
+
+      <% include ../static/partials/messages.ejs %>
+
+ <!-- Evaluate the user's email -->
+      <h1><%= `${user.email}'s profile` %></h1>
+
+      <hr>
+
+      <h2> Latest Posts</h2>
+
+      <ul class="list-unstyled">
+
+ <!-- Check if there are posts for the user -->
+        <% if(posts) { %>
+          <% posts.forEach((post) => { %>
+ <!-- If there are posts, build a <li> for each and link to post's show view -->
+            <li>
+              <a href="/topics/<%= post.topicId %>/posts/<%= post.id %>">
+                <%= post.title %>
+              </a>
+            </li>
+          <% }) %>
+        <% } %>
+      </ul>
+      <hr>
+
+      <h2> Latest Comments</h2>
+
+      <ul class="list-unstyled">
+
+ <!-- We check if there are comments for the user -->
+        <% if(comments) { %>
+          <% comments.forEach((comment) => { %>
+
+ <!-- If there are comments, build a <li> for each and link to comment's post -->
+            <li>
+              <span>Post: </span><a href="/topics/<%= comment.Post.topicId %>/posts/<%= comment.Post.id %>">
+                <%= comment.Post.title %>
+              </a>
+              <p>Comment: <%= comment.body %></p>
+            </li>
+            <hr>
+          <% }) %>
+        <% } %>
+      </ul>
+    </main>
+
+    <% include ../static/partials/baseScripts.ejs %>
+
+  </body>
+</html>

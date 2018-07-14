@@ -38,7 +38,7 @@
 
       <ul class="list-unstyled">
 
- <!-- We check if there are comments for the user -->
+ <!-- Check if there are comments for the user -->
         <% if(comments) { %>
           <% comments.forEach((comment) => { %>
 
@@ -53,9 +53,23 @@
           <% }) %>
         <% } %>
       </ul>
-    </main>
+      <hr>
+      <h2>Favorite Posts</h2>
 
-    <% include ../static/partials/baseScripts.ejs %>
+        <ul class="list-unstyled">
 
-  </body>
+ <!-- Check if there are favorites for the user -->
+          <% if(favorites) { %>
+            <% favorites.forEach((favorite) => { %>
+              <li>
+                <span>Post: </span><a href="/topics/<%= favorite.postId %>/posts/<%= favorite.postId %>">
+                  <%= favorite.Post.title %>
+                </a>
+              </li>
+            <% }) %>
+          <% } %>
+        </ul>
+      </main>
+      <% include ../static/partials/baseScripts.ejs %>
+    </body>
 </html>
